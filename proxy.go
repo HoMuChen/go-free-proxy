@@ -6,7 +6,6 @@ import (
     "net/http"
     "regexp"
     "errors"
-    "fmt"
 )
 
 type Proxy struct {
@@ -44,7 +43,13 @@ func (proxy *Proxy) GetAll() (proxies []string, err error) {
     for ip, exp := range proxy.proxies {
         if exp > now {
             proxies = append(proxies, ip)
+        } else {
+            proxy.Expire(ip)
         }
+    }
+
+    if len(proxies) == 0 {
+        err = errors.New("Empty list")
     }
 
     return
@@ -56,10 +61,16 @@ func (proxy *Proxy) Random() (string, error) {
     for ip, exp := range proxy.proxies {
         if exp > now {
             return ip, nil
+        } else {
+            proxy.Expire(ip)
         }
     }
 
     return "", errors.New("Empty list")
+}
+
+func (proxy *Proxy) Expire(ip string) {
+     delete(proxy.proxies, ip)
 }
 
 func (proxy *Proxy) Insert(ip string) error {
@@ -70,8 +81,6 @@ func (proxy *Proxy) Insert(ip string) error {
 
 func (proxy *Proxy) worker(jobs <-chan bool) {
     for range jobs {
-        fmt.Println("receiving a job...")
-
         ips, err := proxy.FetchProxies()
 
         if err != nil {

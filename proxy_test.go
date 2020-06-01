@@ -2,7 +2,7 @@ package proxy_test
 
 import (
     "testing"
-    "time"
+    //"time"
     "errors"
     "github.com/stretchr/testify/assert"
 
@@ -31,7 +31,7 @@ func TestGetAll(t *testing.T) {
     proxy := proxy.New(proxy.Options{})
     ips, err := proxy.GetAll()
 
-    assert.NoError(t, err)
+    assert.Equal(t, err, errors.New("Empty list"))
     assert.Len(t, ips, 0)
 
     t.Log(ips)
@@ -52,7 +52,7 @@ func TestInsertExpImmedidately(t *testing.T) {
     proxy.Insert("127.0.0.1")
 
     ips, err := proxy.GetAll()
-    assert.NoError(t, err)
+    assert.Equal(t, err, errors.New("Empty list"))
     assert.Len(t, ips, 0)
 
     t.Log(ips)
@@ -65,6 +65,18 @@ func TestInsert(t *testing.T) {
     ips, err := proxy.GetAll()
     assert.NoError(t, err)
     assert.Len(t, ips, 1)
+
+    t.Log(ips)
+}
+
+func TestExpire(t *testing.T) {
+    proxy := proxy.New(proxy.Options{30, 5})
+    proxy.Insert("127.0.0.1")
+    proxy.Expire("127.0.0.1")
+
+    ips, err := proxy.GetAll()
+    assert.Equal(t, err, errors.New("Empty list"))
+    assert.Len(t, ips, 0)
 
     t.Log(ips)
 }
